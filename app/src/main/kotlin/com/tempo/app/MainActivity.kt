@@ -8,10 +8,12 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.ViewGroup
 import android.view.WindowInsetsController
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -30,18 +32,31 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Set status bar and navigation bar colors matching the Tempo preview dark palette
-        window.statusBarColor = Color.parseColor("#0A0516")
-        window.navigationBarColor = Color.parseColor("#0A0516")
+        try {
+            // Set status bar and navigation bar colors matching the Tempo preview dark palette
+            window.statusBarColor = Color.parseColor("#0A0516")
+            window.navigationBarColor = Color.parseColor("#0A0516")
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.setSystemBarsAppearance(
-                0,
-                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.insetsController?.setSystemBarsAppearance(
+                    0,
+                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                )
+            }
+        } catch (e: Throwable) {
+            Log.e("TempoMainActivity", "System bar setup exception", e)
         }
 
-        requestNotificationPermissionIfNeeded()
+        try {
+            requestNotificationPermissionIfNeeded()
+        } catch (e: Throwable) {
+            Log.e("TempoMainActivity", "Notification permission request failed", e)
+        }
+
+        try {
+            // Enable WebView debugging for dev
+            WebView.setWebContentsDebuggingEnabled(true)
+        } catch (_: Throwable) {}
 
         // Create and configure full-screen WebView rendering the exact Preview App
         val mainWebView = WebView(this).apply {
@@ -82,10 +97,16 @@ class MainActivity : ComponentActivity() {
                         false
                     }
                 }
+
+                override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                    super.onReceivedError(view, request, error)
+                    Log.e("TempoWebView", "Web resource error: ${error?.description}")
+                }
             }
 
             webChromeClient = object : WebChromeClient() {
                 override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                    Log.d("TempoJS", "${consoleMessage?.message()} -- From line ${consoleMessage?.lineNumber()} of ${consoleMessage?.sourceId()}")
                     return super.onConsoleMessage(consoleMessage)
                 }
             }
@@ -112,17 +133,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        webView?.onResume()
+        try {
+            webView?.onResume()
+        } catch (_: Throwable) {}
     }
 
     override fun onPause() {
-        webView?.onPause()
+        try {
+            webView?.onPause()
+        } catch (_: Throwable) {}
         super.onPause()
     }
 
     override fun onDestroy() {
-        webView?.destroy()
-        webView = null
+        try {
+            webView?.destroy()
+            webView = null
+        } catch (_: Throwable) {}
         super.onDestroy()
     }
 
