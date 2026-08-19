@@ -1,4 +1,4 @@
-import { RecurrenceRule } from '../types';
+import { RecurrenceRule, Habit } from '../types';
 
 /**
  * Returns ISO Date string (YYYY-MM-DD) for a Date object in local timezone
@@ -59,7 +59,6 @@ export function isEligibleOn(rule: RecurrenceRule, date: Date, createdAt: string
     }
 
     case 'TIMES_PER_WEEK':
-      // Times per week is considered eligible every day; repository checks completions cap
       return true;
 
     case 'MONTHLY_BY_DATE': {
@@ -70,6 +69,14 @@ export function isEligibleOn(rule: RecurrenceRule, date: Date, createdAt: string
     default:
       return true;
   }
+}
+
+export function isHabitScheduledForDate(habit: Habit, dateStr: string): boolean {
+  if (habit.pausedUntil && dateStr <= habit.pausedUntil) {
+    return false;
+  }
+  const targetDate = parseLocalDate(dateStr);
+  return isEligibleOn(habit.recurrenceRule, targetDate, habit.createdAt);
 }
 
 export function formatRecurrenceRule(rule: RecurrenceRule): string {

@@ -1,92 +1,111 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
+import { Check, Lock, Sparkles } from 'lucide-react';
 import { formatLocalDate, addDays } from '../domain/recurrenceEngine';
-import { Habit, HabitCompletion } from '../types';
 
 interface DayStripProps {
   selectedDate: string; // YYYY-MM-DD
   onSelectDate: (date: string) => void;
-  habits: Habit[];
-  completions: HabitCompletion[];
+  streakCount: number;
 }
 
 export const DayStrip: React.FC<DayStripProps> = ({
   selectedDate,
   onSelectDate,
-  habits,
-  completions,
+  streakCount,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const todayStr = formatLocalDate(new Date());
+  const today = new Date();
+  const todayStr = formatLocalDate(today);
 
-  // Generate a window of 14 days centered around today/selectedDate
-  const days = React.useMemo(() => {
-    const list: { dateStr: string; dayName: string; dayNum: number; isToday: boolean }[] = [];
-    const baseDate = new Date();
-    for (let i = -7; i <= 7; i++) {
-      const d = addDays(baseDate, i);
-      const dateStr = formatLocalDate(d);
-      list.push({
-        dateStr,
-        dayName: d.toLocaleDateString('en-US', { weekday: 'narrow' }),
-        dayNum: d.getDate(),
-        isToday: dateStr === todayStr,
-      });
-    }
-    return list;
-  }, [todayStr]);
+  // Generate 7-day logged in cycle (days around today)
+  const days = [-2, -1, 0, 1, 2, 3, 4].map(offset => {
+    const d = addDays(today, offset);
+    const dateStr = formatLocalDate(d);
+    const dayNum = d.getDate();
+    const isToday = dateStr === todayStr;
+    const isPast = dateStr < todayStr;
+    const isSelected = dateStr === selectedDate;
+    const isFuture = dateStr > todayStr;
 
-  // Center the selected day in view
-  useEffect(() => {
-    if (containerRef.current) {
-      const activeEl = containerRef.current.querySelector('[data-active="true"]');
-      if (activeEl) {
-        activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
-    }
-  }, [selectedDate]);
+    let label = `Day ${dayNum}`;
+    if (isToday) label = 'Today';
 
-  // Calculate completion percentage for a given date
-  const getCompletionFraction = (dateStr: string) => {
-    const dayCompletions = completions.filter(c => c.date === dateStr && c.status === 'COMPLETED');
-    if (habits.length === 0) return 0;
-    return Math.min(1, dayCompletions.length / habits.length);
-  };
+    return {
+      dateStr,
+      dayNum,
+      label,
+      isToday,
+      isPast,
+      isSelected,
+      isFuture,
+    };
+  });
 
   return (
-    <div className="w-full py-2">
-      <div
-        ref={containerRef}
-        className="flex items-center gap-2 overflow-x-auto no-scrollbar px-4 sm:px-6 py-1"
-      >
-        {days.map(d => {
-          const isSelected = d.dateStr === selectedDate;
-          const fraction = getCompletionFraction(d.dateStr);
+    <div className="w-full space-y-2">
+      <div className="flex items-center justify-between px-1">
+        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+          Days Logged In
+        </span>
+        <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1">
+          <Sparkles className="w-3 h-3" />
+          {streakCount > 0 ? `${streakCount} Day Streak` : 'Start Streak Today'}
+        </span>
+      </div>
+
+      {/* Horizontal Day Bubbles from Screenshot */}
+      <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        {days.map((item, idx) => {
+          if (item.isToday) {
+            return (
+              <button
+                key={item.dateStr}
+                onClick={() => onSelectDate(item.dateStr)}
+                className={`flex-1 min-w-[50px] py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                  item.isSelected
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-900/30 scale-105'
+                    : 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-2 border-purple-400/60'
+                }`}
+              >
+                <span className="text-[10px] font-bold tracking-tight">Today</span>
+                <div className="w-6 h-6 rounded-full border-2 border-dashed border-current flex items-center justify-center animate-pulse">
+                  <span className="text-[11px] font-bold">{item.dayNum}</span>
+                </div>
+              </button>
+            );
+          }
+
+          if (item.isPast) {
+            return (
+              <button
+                key={item.dateStr}
+                onClick={() => onSelectDate(item.dateStr)}
+                className={`flex-1 min-w-[46px] py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                  item.isSelected
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'bg-white dark:bg-[#1b142f] text-zinc-700 dark:text-zinc-300 border border-black/5 dark:border-white/5 hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                }`}
+              >
+                <span className="text-[10px] text-zinc-400 font-medium">{item.label}</span>
+                <div className="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <Check className="w-3.5 h-3.5" strokeWidth={2.6} />
+                </div>
+              </button>
+            );
+          }
 
           return (
             <button
-              key={d.dateStr}
-              data-active={isSelected}
-              id={`day-pill-${d.dateStr}`}
-              onClick={() => onSelectDate(d.dateStr)}
-              className={`flex-shrink-0 flex flex-col items-center justify-between w-12 h-16 py-2 rounded-2xl transition-all duration-200 ${
-                isSelected
-                  ? 'bg-gradient-to-b from-purple-600 to-amber-500 text-white font-bold shadow-lg shadow-purple-900/40 scale-105'
-                  : 'bg-[#150f24] hover:bg-[#1f1636] text-zinc-400 border border-purple-500/10'
+              key={item.dateStr}
+              onClick={() => onSelectDate(item.dateStr)}
+              className={`flex-1 min-w-[46px] py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                item.isSelected
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'bg-white dark:bg-[#1b142f] text-zinc-400 dark:text-zinc-500 border border-black/5 dark:border-white/5 opacity-70'
               }`}
             >
-              <span className={`text-[10px] uppercase font-semibold ${isSelected ? 'text-amber-100' : 'text-zinc-500'}`}>
-                {d.dayName}
-              </span>
-              <span className="text-base font-bold">
-                {d.dayNum}
-              </span>
-              
-              {/* Mini progress bar indicator */}
-              <div className="w-6 h-1 bg-black/30 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${isSelected ? 'bg-white' : 'bg-gradient-to-r from-purple-400 to-amber-400'}`}
-                  style={{ width: `${fraction * 100}%` }}
-                />
+              <span className="text-[10px] font-medium">{item.label}</span>
+              <div className="w-6 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+                <Lock className="w-3 h-3" />
               </div>
             </button>
           );

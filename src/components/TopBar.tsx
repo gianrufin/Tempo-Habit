@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Search, Settings, Flame, Zap, Download, CheckCircle2 } from 'lucide-react';
+import React from 'react';
+import { Search, Settings, RefreshCw, Sun, Moon, Bell } from 'lucide-react';
 import { UserPreferences } from '../types';
-import { downloadApkDirectly } from '../domain/apkDownloader';
+import { SquircleIcon } from './SquircleIcon';
 
 interface TopBarProps {
   userPrefs: UserPreferences;
@@ -10,7 +10,8 @@ interface TopBarProps {
   completedTodayCount: number;
   onOpenSearch: () => void;
   onOpenSettings: () => void;
-  onOpenReadme?: () => void;
+  onOpenUpdateModal?: () => void;
+  onToggleTheme?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -20,17 +21,10 @@ export const TopBar: React.FC<TopBarProps> = ({
   completedTodayCount,
   onOpenSearch,
   onOpenSettings,
-  onOpenReadme,
+  onOpenUpdateModal,
+  onToggleTheme,
 }) => {
-  const [downloading, setDownloading] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  };
+  const isLight = userPrefs.theme === 'light';
 
   const formattedDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
     weekday: 'short',
@@ -38,86 +32,56 @@ export const TopBar: React.FC<TopBarProps> = ({
     day: 'numeric',
   });
 
-  const progressPercent = activeHabitCount > 0 ? Math.round((completedTodayCount / activeHabitCount) * 100) : 0;
-
-  const handleDownloadClick = async () => {
-    if (downloading) return;
-    setDownloading(true);
-    const ok = await downloadApkDirectly();
-    setDownloading(false);
-    if (ok) {
-      setDownloaded(true);
-      setTimeout(() => setDownloaded(false), 3000);
-    }
-  };
-
   return (
-    <header className="w-full pt-4 pb-3 px-4 sm:px-6 flex items-center justify-between border-b border-white/5 bg-[#0b0714]/80 backdrop-blur-md sticky top-0 z-30">
+    <header className="w-full pt-4 pb-3 px-4 sm:px-6 flex items-center justify-between border-b border-black/5 dark:border-white/5 bg-[#F4F3FB]/90 dark:bg-[#0E091C]/90 backdrop-blur-md sticky top-0 z-30">
+      {/* User Info & Squircle Avatar */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 via-purple-500 to-amber-400 p-[1.5px] flex items-center justify-center shadow-md shadow-purple-900/30">
-          <div className="w-full h-full bg-[#0e081c] rounded-[14px] flex items-center justify-center">
-            <Zap className="w-5 h-5 text-amber-400 fill-amber-400/20" />
-          </div>
-        </div>
+        <SquircleIcon name="zap" color="#7C69EF" size="md" variant="soft" />
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
-              {getGreeting()},{' '}
-              <span className="bg-gradient-to-r from-amber-300 via-amber-200 to-purple-300 bg-clip-text text-transparent">
-                {userPrefs.displayName || 'Friend'}
-              </span>
+            <h1 className="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
+              Hi, {userPrefs.displayName || 'Gian'}
             </h1>
           </div>
-          <p className="text-xs text-zinc-400">{formattedDate}</p>
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+            {formattedDate} • {completedTodayCount}/{activeHabitCount} completed
+          </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Daily progress pill */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#18112b] border border-purple-500/20 text-xs text-zinc-300">
-          <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
-          <span>
-            {completedTodayCount}/{activeHabitCount} done ({progressPercent}%)
-          </span>
-        </div>
-
-        {/* Direct In-App Instant APK Download Button */}
-        <button
-          type="button"
-          id="topbar-download-apk-btn"
-          disabled={downloading}
-          onClick={handleDownloadClick}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/40 text-xs font-bold shadow-md shadow-emerald-950/40 active:scale-95 transition-all cursor-pointer"
-          title="Direct Instant APK Download"
-        >
-          {downloaded ? (
-            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-          ) : (
-            <Download className={`w-3.5 h-3.5 text-white ${downloading ? 'animate-bounce' : ''}`} />
-          )}
-          <span>{downloading ? 'Saving APK...' : downloaded ? 'Downloaded!' : 'Get APK'}</span>
-        </button>
-
-        {/* Readme & Guide */}
-        {onOpenReadme && (
+      {/* Action Buttons in Squircles */}
+      <div className="flex items-center gap-2">
+        {/* In-App GitHub OTA Check for Updates button */}
+        {onOpenUpdateModal && (
           <button
             type="button"
-            id="topbar-readme-btn"
-            onClick={onOpenReadme}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18112b] hover:bg-[#251b42] text-amber-300 hover:text-amber-200 border border-purple-500/20 text-xs font-medium shadow-sm transition-all"
-            title="Read README & Installation Guide"
-            aria-label="README & Guide"
+            onClick={onOpenUpdateModal}
+            className="p-2.5 rounded-2xl bg-white dark:bg-[#1C1433] hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-300 border border-purple-500/20 shadow-sm transition-all cursor-pointer"
+            title="Check for GitHub Updates"
+            aria-label="Check for updates"
           >
-            <span>Guide</span>
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* Theme Toggle */}
+        {onToggleTheme && (
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            className="p-2.5 rounded-2xl bg-white dark:bg-[#1C1433] text-zinc-600 dark:text-zinc-300 hover:text-purple-600 dark:hover:text-purple-300 border border-black/5 dark:border-white/5 shadow-sm transition-all cursor-pointer"
+            title="Toggle Light / Dark Mode"
+            aria-label="Toggle Theme"
+          >
+            {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
           </button>
         )}
 
         {/* Search button */}
         <button
           type="button"
-          id="topbar-search-btn"
           onClick={onOpenSearch}
-          className="p-2.5 rounded-full bg-[#18112b] hover:bg-[#251b42] text-zinc-300 hover:text-white border border-purple-500/10 transition-colors"
+          className="p-2.5 rounded-2xl bg-white dark:bg-[#1C1433] text-zinc-600 dark:text-zinc-300 hover:text-purple-600 dark:hover:text-purple-300 border border-black/5 dark:border-white/5 shadow-sm transition-all cursor-pointer"
           title="Search habits and tasks"
           aria-label="Search"
         >
@@ -127,9 +91,8 @@ export const TopBar: React.FC<TopBarProps> = ({
         {/* Settings button */}
         <button
           type="button"
-          id="topbar-settings-btn"
           onClick={onOpenSettings}
-          className="p-2.5 rounded-full bg-[#18112b] hover:bg-[#251b42] text-zinc-300 hover:text-white border border-purple-500/10 transition-colors"
+          className="p-2.5 rounded-2xl bg-white dark:bg-[#1C1433] text-zinc-600 dark:text-zinc-300 hover:text-purple-600 dark:hover:text-purple-300 border border-black/5 dark:border-white/5 shadow-sm transition-all cursor-pointer"
           title="Settings"
           aria-label="Settings"
         >

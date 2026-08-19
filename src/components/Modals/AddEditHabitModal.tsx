@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Habit, RecurrenceType, TimeOfDay } from '../../types';
 import { formatLocalDate, addDays } from '../../domain/recurrenceEngine';
 import { X, Trash2, Plus, Minus, Check, Clock } from 'lucide-react';
+import { SquircleIcon, AVAILABLE_ICON_KEYS } from '../SquircleIcon';
 
 interface AddEditHabitModalProps {
   habit?: Habit | null; // if null, creating new
@@ -11,8 +12,8 @@ interface AddEditHabitModalProps {
   onDelete?: (habitId: string) => void;
 }
 
-const DEFAULT_ICONS = ['💧', '🏃', '📚', '🧘', '⚡', '🌙', '✍️', '🤸', '💊', '🎯', '🥗', '☕', '🎨', '🚴', '🏊'];
-const DEFAULT_COLORS = ['#38BDF8', '#F59E0B', '#8B5CF6', '#10B981', '#EC4899', '#6366F1', '#14B8A6', '#F97316', '#EAB308'];
+const DEFAULT_ICONS = AVAILABLE_ICON_KEYS;
+const DEFAULT_COLORS = ['#7C69EF', '#FF8522', '#10B981', '#38BDF8', '#EC4899', '#6366F1', '#14B8A6', '#F59E0B', '#8B5CF6'];
 const WEEKDAYS = [
   { id: 1, label: 'Mon' },
   { id: 2, label: 'Tue' },
@@ -33,8 +34,8 @@ export const AddEditHabitModal: React.FC<AddEditHabitModalProps> = ({
   if (!isOpen) return null;
 
   const [name, setName] = useState(habit?.name || '');
-  const [icon, setIcon] = useState(habit?.icon || '💧');
-  const [color, setColor] = useState(habit?.color || '#38BDF8');
+  const [icon, setIcon] = useState(habit?.icon || 'zap');
+  const [color, setColor] = useState(habit?.color || '#7C69EF');
   const [category, setCategory] = useState(habit?.category || 'Health');
   const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>(habit?.recurrenceRule.type || 'DAILY');
   const [weekdays, setWeekdays] = useState<number[]>(habit?.recurrenceRule.weekdays || [1, 2, 3, 4, 5]);
@@ -100,7 +101,7 @@ export const AddEditHabitModal: React.FC<AddEditHabitModalProps> = ({
       graceDays,
       pausedUntil,
       routineId: habit?.routineId || null,
-      orderIndex: habit?.orderIndex || 0,
+      orderIndex: habit?.orderIndex ?? 0,
     };
 
     onSave(updatedHabit);
@@ -108,144 +109,172 @@ export const AddEditHabitModal: React.FC<AddEditHabitModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div
-        className="w-full max-w-lg max-h-[90vh] bg-[#140e24] border border-purple-500/30 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/5 bg-[#18112b]">
-          <h2 className="text-lg font-bold text-white">
-            {habit ? 'Edit Habit' : 'New Habit'}
-          </h2>
-          <div className="flex items-center gap-2">
-            {habit && onDelete && (
-              <button
-                onClick={() => {
-                  if (confirm('Delete this habit and all its history?')) {
-                    onDelete(habit.id);
-                    onClose();
-                  }
-                }}
-                className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors"
-                title="Delete habit"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="p-2 text-zinc-400 hover:text-white rounded-full hover:bg-white/5"
-            >
-              <X className="w-5 h-5" />
-            </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-[#161026] text-zinc-900 dark:text-zinc-100 rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl border border-black/5 dark:border-white/10 max-h-[90vh]">
+        {/* Header */}
+        <div className="p-4 sm:p-5 border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-zinc-50 dark:bg-[#1a1330]">
+          <div className="flex items-center gap-3">
+            <SquircleIcon name={icon} color={color} size="md" variant="solid" />
+            <div>
+              <h2 className="text-base font-bold tracking-tight">
+                {habit ? 'Edit Habit' : 'Create New Habit'}
+              </h2>
+              <p className="text-xs text-zinc-500">Customize recurrence, time, and reminders</p>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-2xl text-zinc-400 hover:text-zinc-600 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Modal Content Scrollable */}
-        <div className="p-5 space-y-5 overflow-y-auto flex-1 text-sm">
-          {/* Name input */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Habit Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="e.g. Read 20 pages"
-              className="w-full px-4 py-3 bg-[#0d0818] border border-purple-500/20 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400/60"
-            />
-          </div>
+        {/* Content */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-5">
+          {/* Name & Category */}
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
+                Habit Title *
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="e.g. Read 15 Pages, 10 Min Meditation..."
+                className="w-full text-sm font-semibold p-3.5 rounded-2xl bg-purple-50/50 dark:bg-[#1f1638] border border-purple-200 dark:border-purple-800/40 text-zinc-900 dark:text-white outline-none focus:border-purple-500"
+              />
+            </div>
 
-          {/* Icon Picker */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Icon
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {DEFAULT_ICONS.map(ic => (
-                <button
-                  key={ic}
-                  type="button"
-                  onClick={() => setIcon(ic)}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all ${
-                    icon === ic
-                      ? 'bg-purple-600 text-white ring-2 ring-amber-400 scale-105'
-                      : 'bg-[#1b1330] hover:bg-[#251a42] text-zinc-300'
-                  }`}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
+                  Category
+                </label>
+                <select
+                  value={category}
+                  onChange={e => setCategory(e.target.value)}
+                  className="w-full text-xs font-semibold p-3 rounded-2xl bg-zinc-50 dark:bg-[#1f1638] border border-black/5 dark:border-white/5 outline-none"
                 >
-                  {ic}
-                </button>
-              ))}
+                  <option value="Health">Health</option>
+                  <option value="Fitness">Fitness</option>
+                  <option value="Mindfulness">Mindfulness</option>
+                  <option value="Learning">Learning</option>
+                  <option value="Productivity">Productivity</option>
+                  <option value="Creativity">Creativity</option>
+                  <option value="Lifestyle">Lifestyle</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
+                  Time of Day
+                </label>
+                <select
+                  value={timeOfDay}
+                  onChange={e => setTimeOfDay(e.target.value as TimeOfDay)}
+                  className="w-full text-xs font-semibold p-3 rounded-2xl bg-zinc-50 dark:bg-[#1f1638] border border-black/5 dark:border-white/5 outline-none"
+                >
+                  <option value="MORNING">Morning</option>
+                  <option value="AFTERNOON">Afternoon</option>
+                  <option value="EVENING">Evening</option>
+                  <option value="NIGHT">Night</option>
+                  <option value="ANYTIME">Anytime</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Color Picker */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Color Theme
+          {/* Squircle Line Icon Selector (Zero Emojis) */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+              Squircle Line Icon
             </label>
-            <div className="flex flex-wrap gap-2.5">
-              {DEFAULT_COLORS.map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setColor(c)}
-                  style={{ backgroundColor: c }}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform ${
-                    color === c ? 'ring-2 ring-white scale-110' : 'opacity-80 hover:opacity-100'
-                  }`}
-                >
-                  {color === c && <Check className="w-3.5 h-3.5 text-black stroke-[3]" />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Schedule / Recurrence */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Frequency & Recurrence
-            </label>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mb-3">
-              {(['DAILY', 'SPECIFIC_WEEKDAYS', 'EVERY_N_DAYS', 'TIMES_PER_WEEK', 'MONTHLY_BY_DATE'] as RecurrenceType[]).map(t => {
-                const labels: Record<RecurrenceType, string> = {
-                  DAILY: 'Daily',
-                  SPECIFIC_WEEKDAYS: 'Weekdays',
-                  EVERY_N_DAYS: 'Interval',
-                  TIMES_PER_WEEK: 'X/week',
-                  MONTHLY_BY_DATE: 'Monthly',
-                };
+            <div className="flex items-center gap-2 overflow-x-auto p-1 no-scrollbar">
+              {DEFAULT_ICONS.map(iKey => {
+                const isSelected = icon === iKey;
                 return (
                   <button
-                    key={t}
+                    key={iKey}
                     type="button"
-                    onClick={() => setRecurrenceType(t)}
-                    className={`py-2 px-1 text-center rounded-xl text-xs font-medium transition-all ${
-                      recurrenceType === t
-                        ? 'bg-purple-600 text-white font-semibold shadow-sm'
-                        : 'bg-[#1b1330] text-zinc-400 hover:text-white'
+                    onClick={() => setIcon(iKey)}
+                    className={`p-1 rounded-2xl transition-all cursor-pointer ${
+                      isSelected ? 'ring-2 ring-purple-600 scale-110' : 'opacity-60 hover:opacity-100'
                     }`}
                   >
-                    {labels[t]}
+                    <SquircleIcon name={iKey} color={color} size="sm" variant={isSelected ? 'solid' : 'soft'} />
                   </button>
                 );
               })}
             </div>
+          </div>
 
-            {/* Recurrence Specific options */}
+          {/* Color Palette */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+              Accent Color
+            </label>
+            <div className="flex items-center gap-2.5 overflow-x-auto p-1 no-scrollbar">
+              {DEFAULT_COLORS.map(c => {
+                const isSelected = color === c;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className={`w-7 h-7 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                      isSelected ? 'ring-2 ring-offset-2 ring-purple-600 scale-110' : ''
+                    }`}
+                    style={{ backgroundColor: c }}
+                  >
+                    {isSelected && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Recurrence Rule */}
+          <div className="space-y-2.5 p-4 rounded-2xl bg-zinc-50 dark:bg-[#1f1638] border border-black/5 dark:border-white/5">
+            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+              Recurrence Schedule
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { type: 'DAILY', label: 'Every Day' },
+                { type: 'SPECIFIC_WEEKDAYS', label: 'Specific Days' },
+                { type: 'EVERY_N_DAYS', label: 'Interval (Every N)' },
+                { type: 'TIMES_PER_WEEK', label: 'Times per Week' },
+              ].map(item => (
+                <button
+                  key={item.type}
+                  type="button"
+                  onClick={() => setRecurrenceType(item.type as RecurrenceType)}
+                  className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    recurrenceType === item.type
+                      ? 'bg-[#7C69EF] text-white shadow-sm'
+                      : 'bg-white dark:bg-[#161026] text-zinc-600 dark:text-zinc-300 border border-black/5 dark:border-white/5'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
             {recurrenceType === 'SPECIFIC_WEEKDAYS' && (
-              <div className="flex gap-1.5 justify-between">
+              <div className="flex items-center justify-between gap-1 pt-2">
                 {WEEKDAYS.map(w => {
-                  const isSel = weekdays.includes(w.id);
+                  const isChecked = weekdays.includes(w.id);
                   return (
                     <button
                       key={w.id}
                       type="button"
                       onClick={() => toggleWeekday(w.id)}
-                      className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                        isSel ? 'bg-amber-400 text-black' : 'bg-[#1b1330] text-zinc-400 hover:bg-[#251a42]'
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isChecked
+                          ? 'bg-[#7C69EF] text-white'
+                          : 'bg-white dark:bg-[#161026] text-zinc-400 border border-black/5 dark:border-white/5'
                       }`}
                     >
                       {w.label}
@@ -254,260 +283,88 @@ export const AddEditHabitModal: React.FC<AddEditHabitModalProps> = ({
                 })}
               </div>
             )}
-
-            {recurrenceType === 'EVERY_N_DAYS' && (
-              <div className="flex items-center gap-3 p-3 bg-[#1b1330] rounded-xl">
-                <span className="text-zinc-300">Repeat every</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEveryNDays(Math.max(1, everyNDays - 1))}
-                    className="p-1 rounded-lg bg-white/5 hover:bg-white/10"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-8 text-center font-bold text-amber-300">{everyNDays}</span>
-                  <button
-                    type="button"
-                    onClick={() => setEveryNDays(everyNDays + 1)}
-                    className="p-1 rounded-lg bg-white/5 hover:bg-white/10"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <span className="text-zinc-300">days</span>
-              </div>
-            )}
-
-            {recurrenceType === 'TIMES_PER_WEEK' && (
-              <div className="flex items-center gap-3 p-3 bg-[#1b1330] rounded-xl">
-                <span className="text-zinc-300">Target</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTimesPerWeek(Math.max(1, timesPerWeek - 1))}
-                    className="p-1 rounded-lg bg-white/5 hover:bg-white/10"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-8 text-center font-bold text-amber-300">{timesPerWeek}</span>
-                  <button
-                    type="button"
-                    onClick={() => setTimesPerWeek(Math.min(7, timesPerWeek + 1))}
-                    className="p-1 rounded-lg bg-white/5 hover:bg-white/10"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <span className="text-zinc-300">times every week</span>
-              </div>
-            )}
-
-            {recurrenceType === 'MONTHLY_BY_DATE' && (
-              <div className="flex items-center gap-3 p-3 bg-[#1b1330] rounded-xl">
-                <span className="text-zinc-300">On Day</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setMonthlyDay(Math.max(1, monthlyDay - 1))}
-                    className="p-1 rounded-lg bg-white/5 hover:bg-white/10"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-8 text-center font-bold text-amber-300">{monthlyDay}</span>
-                  <button
-                    type="button"
-                    onClick={() => setMonthlyDay(Math.min(31, monthlyDay + 1))}
-                    className="p-1 rounded-lg bg-white/5 hover:bg-white/10"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <span className="text-zinc-300">of each month</span>
-              </div>
-            )}
           </div>
 
-          {/* Time of Day */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Time of Day
+          {/* Reminder Times */}
+          <div className="space-y-2 p-4 rounded-2xl bg-zinc-50 dark:bg-[#1f1638] border border-black/5 dark:border-white/5">
+            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+              Reminder Alerts
             </label>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {(['MORNING', 'AFTERNOON', 'EVENING', 'NIGHT', 'ANYTIME'] as TimeOfDay[]).map(tod => (
-                <button
-                  key={tod}
-                  type="button"
-                  onClick={() => setTimeOfDay(tod)}
-                  className={`py-2 px-2 rounded-xl text-xs font-medium capitalize transition-all ${
-                    timeOfDay === tod
-                      ? 'bg-gradient-to-r from-purple-600 to-amber-500 text-white font-semibold shadow-sm'
-                      : 'bg-[#1b1330] text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  {tod.toLowerCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Streak Freezes & Grace Period */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-3 bg-[#1b1330] rounded-xl">
-              <label className="block text-xs text-zinc-400 mb-1">Streak Freezes (per week)</label>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-amber-300">{streakFreezes} freezes</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setStreakFreezes(Math.max(0, streakFreezes - 1))}
-                    className="p-1 rounded bg-white/5 hover:bg-white/10"
-                  >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStreakFreezes(streakFreezes + 1)}
-                    className="p-1 rounded bg-white/5 hover:bg-white/10"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                value={newReminder}
+                onChange={e => setNewReminder(e.target.value)}
+                className="text-xs font-bold py-2 px-3 rounded-xl bg-white dark:bg-[#161026] border border-black/5 dark:border-white/5 outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleAddReminder}
+                className="py-2 px-3 rounded-xl bg-[#7C69EF] text-white font-bold text-xs flex items-center gap-1 shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Alert</span>
+              </button>
             </div>
 
-            <div className="p-3 bg-[#1b1330] rounded-xl">
-              <label className="block text-xs text-zinc-400 mb-1">Grace Period</label>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-amber-300">{graceDays} day(s)</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setGraceDays(Math.max(0, graceDays - 1))}
-                    className="p-1 rounded bg-white/5 hover:bg-white/10"
+            {reminders.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {reminders.map(t => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-mono text-xs font-bold"
                   >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setGraceDays(graceDays + 1)}
-                    className="p-1 rounded bg-white/5 hover:bg-white/10"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Reminders */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              Reminders
-            </label>
-            <div className="flex flex-wrap gap-2 items-center">
-              {reminders.map(t => (
-                <span
-                  key={t}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-purple-900/40 border border-purple-500/30 text-purple-200 rounded-full text-xs font-medium"
-                >
-                  <Clock className="w-3.5 h-3.5 text-amber-400" />
-                  {t}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveReminder(t)}
-                    className="hover:text-white ml-0.5"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </span>
-              ))}
-              <div className="flex items-center gap-1">
-                <input
-                  type="time"
-                  value={newReminder}
-                  onChange={e => setNewReminder(e.target.value)}
-                  className="px-2 py-1 bg-[#0d0818] border border-purple-500/20 rounded-lg text-xs text-white"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddReminder}
-                  className="p-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Vacation Mode if editing existing habit */}
-          {habit && (
-            <div className="p-3.5 bg-gradient-to-r from-purple-950/40 to-slate-950 border border-purple-500/20 rounded-2xl">
-              <span className="text-xs font-bold text-amber-300 block mb-1">Vacation Mode</span>
-              {pausedUntil && pausedUntil >= formatLocalDate(new Date()) ? (
-                <div className="space-y-2">
-                  <p className="text-xs text-zinc-300">
-                    Habit is paused until <span className="font-bold text-white">{pausedUntil}</span>. It won't penalize your streak.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleResume}
-                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl"
-                  >
-                    Resume Habit Now
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-xs text-zinc-400">
-                    Going away? Pause this habit to preserve your active streaks while traveling.
-                  </p>
-                  <div className="flex gap-2">
+                    <Clock className="w-3 h-3" />
+                    <span>{t}</span>
                     <button
                       type="button"
-                      onClick={() => handlePauseDays(3)}
-                      className="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-xs rounded-lg text-zinc-300"
+                      onClick={() => handleRemoveReminder(t)}
+                      className="hover:text-red-500 cursor-pointer ml-1"
                     >
-                      3 days
+                      <X className="w-3 h-3" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handlePauseDays(7)}
-                      className="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-xs rounded-lg text-zinc-300"
-                    >
-                      1 week
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handlePauseDays(14)}
-                      className="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-xs rounded-lg text-zinc-300"
-                    >
-                      2 weeks
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="p-4 border-t border-white/5 bg-[#18112b] flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-zinc-400 hover:text-white text-sm font-medium rounded-xl hover:bg-white/5"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={!name.trim()}
-            className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white text-sm font-bold rounded-xl shadow-lg shadow-purple-900/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {habit ? 'Save Changes' : 'Create Habit'}
-          </button>
+        {/* Footer */}
+        <div className="p-4 sm:p-5 border-t border-black/5 dark:border-white/10 bg-zinc-50 dark:bg-[#1a1330] flex items-center justify-between">
+          {habit && onDelete ? (
+            <button
+              type="button"
+              onClick={() => {
+                onDelete(habit.id);
+                onClose();
+              }}
+              className="p-2.5 rounded-2xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+              title="Delete Habit"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2.5 px-4 rounded-2xl bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold text-xs transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!name.trim()}
+              className="py-2.5 px-6 rounded-2xl bg-[#7C69EF] hover:bg-[#6c59db] disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-purple-900/20 active:scale-95 transition-all cursor-pointer"
+            >
+              Save Habit
+            </button>
+          </div>
         </div>
       </div>
     </div>

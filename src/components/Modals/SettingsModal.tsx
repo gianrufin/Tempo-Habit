@@ -146,23 +146,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setUpdateError(null);
 
     try {
-      const res = await UpdaterService.downloadAndInstallUpdate(
+      const success = await UpdaterService.downloadAndInstallUpdate(
         targetRelease,
         (percent, downloadedMb, totalMb, speed) => {
           setDownloadProgress({ percent, downloadedMb, totalMb, speed });
         }
       );
 
-      if (res.success) {
-        setCurrentAppVersion(res.newVersion);
-        setInstallSuccessMessage(`Updated to v${res.newVersion}! Successfully installed in-app.`);
+      if (success) {
+        const newVer = targetRelease.version;
+        setCurrentAppVersion(newVer);
+        setInstallSuccessMessage(`Updated to v${newVer}! Successfully installed in-app.`);
         playCelebrationSound();
         setCheckResult(null);
 
         // Persist updated version in storage
         const updatedPrefs: UserPreferences = {
           ...userPrefs,
-          appVersion: res.newVersion,
+          appVersion: newVer,
           lastUpdateCheckedAt: new Date().toISOString(),
         };
         onSavePreferences(updatedPrefs);

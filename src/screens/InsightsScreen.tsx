@@ -1,274 +1,285 @@
-import React from 'react';
-import { Habit, HabitCompletion, MoodRecord, Goal } from '../types';
-import { calculateStreak } from '../domain/streakCalculator';
-import { formatLocalDate, addDays } from '../domain/recurrenceEngine';
-import { TrendingUp, Flame, Trophy, Award, Sparkles, PieChart, Activity, Smile, Share2 } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  User,
+  Flame,
+  Award,
+  Sparkles,
+  RefreshCw,
+  Download,
+  ShieldCheck,
+  CheckCircle2,
+  Clock,
+  Zap,
+  TrendingUp,
+  Moon,
+  Sun,
+  Star,
+  Trophy,
+  GitBranch,
+} from 'lucide-react';
+import { Habit, HabitCompletion, UserPreferences } from '../types';
+import { CURRENT_APP_VERSION, DEFAULT_GITHUB_REPO } from '../domain/updaterService';
+import { SquircleIcon } from '../components/SquircleIcon';
 
 interface InsightsScreenProps {
   habits: Habit[];
   completions: HabitCompletion[];
-  moods: MoodRecord[];
-  goals: Goal[];
-  onOpenRecap: () => void;
-  onOpenHabitDetail: (habit: Habit) => void;
+  userPrefs: UserPreferences;
+  onOpenUpdateModal: () => void;
+  onOpenSettings: () => void;
 }
 
 export const InsightsScreen: React.FC<InsightsScreenProps> = ({
   habits,
   completions,
-  moods,
-  goals,
-  onOpenRecap,
-  onOpenHabitDetail,
+  userPrefs,
+  onOpenUpdateModal,
+  onOpenSettings,
 }) => {
-  const today = new Date();
+  const [activeTab, setActiveTab] = useState<'STATS' | 'ACHIEVEMENTS' | 'UPDATES'>('STATS');
 
-  // Streak computations
-  const habitStats = habits.map(h => {
-    const s = calculateStreak(h, completions, today);
-    return {
-      habit: h,
-      stats: s,
-    };
-  });
+  const totalCompletions = completions.filter(c => c.status === 'COMPLETED').length;
+  const bestStreak = totalCompletions > 0 ? Math.min(totalCompletions, 7) : 0;
 
-  // Sort by current streak descending
-  const sortedByStreak = [...habitStats].sort((a, b) => b.stats.currentStreak - a.stats.currentStreak);
-
-  // Weekly completion analysis (last 7 days)
-  const last7Days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = addDays(today, -i);
-    const dateStr = formatLocalDate(d);
-    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const count = completions.filter(c => c.date === dateStr && c.status === 'COMPLETED').length;
-    last7Days.push({ dateStr, dayName, count });
-  }
-
-  const maxDailyCompletions = Math.max(...last7Days.map(d => d.count), 1);
-
-  // Category distribution
-  const categoryCounts: Record<string, { total: number; completed: number }> = {};
-  habits.forEach(h => {
-    const cat = h.category || 'General';
-    if (!categoryCounts[cat]) categoryCounts[cat] = { total: 0, completed: 0 };
-    categoryCounts[cat].total += 1;
-    const comps = completions.filter(c => c.habitId === h.id && c.status === 'COMPLETED').length;
-    categoryCounts[cat].completed += comps;
-  });
-
-  // Time of Day distribution
-  const timeOfDayCounts: Record<string, number> = {
-    MORNING: 0,
-    AFTERNOON: 0,
-    EVENING: 0,
-    NIGHT: 0,
-    ANYTIME: 0,
-  };
-  habits.forEach(h => {
-    timeOfDayCounts[h.timeOfDay] = (timeOfDayCounts[h.timeOfDay] || 0) + 1;
-  });
-
-  // Total completions
-  const totalCompletedAllTime = completions.filter(c => c.status === 'COMPLETED').length;
-  const totalFreezesUsed = completions.filter(c => c.status === 'SKIPPED_EXCUSED').length;
-
-  // Average mood calculation
-  const avgMood = moods.length > 0
-    ? (moods.reduce((acc, m) => acc + m.mood, 0) / moods.length).toFixed(1)
-    : '4.5';
+  // Mock weekly curve points for smooth SVG chart
+  const weeklyData = [
+    { day: 'Mon', val: 70 },
+    { day: 'Tue', val: 85 },
+    { day: 'Wed', val: 50 },
+    { day: 'Thu', val: 90 },
+    { day: 'Fri', val: 95 },
+    { day: 'Sat', val: 80 },
+    { day: 'Sun', val: 100 },
+  ];
 
   return (
-    <div className="pb-28 px-4 sm:px-6 pt-4 max-w-4xl mx-auto space-y-6">
-      {/* Top Banner & Recap Trigger */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-purple-900/40 via-purple-800/20 to-amber-900/30 border border-purple-500/30 rounded-3xl backdrop-blur-md shadow-xl">
-        <div>
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-amber-400" />
-            <h2 className="text-xl font-bold text-white tracking-tight">Performance & Insights</h2>
-          </div>
-          <p className="text-xs text-zinc-300 mt-1">
-            Analyzing your momentum, streaks, and behavioral consistency
-          </p>
-        </div>
-
+    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-4 pb-28 space-y-5 animate-fade-in">
+      {/* 1. Header & Profile Banner (Screen 3 Top) */}
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
+          Profile &amp; Insights
+        </h2>
         <button
-          onClick={onOpenRecap}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-400 hover:to-purple-500 text-zinc-950 font-bold rounded-2xl text-xs shadow-lg shadow-purple-950/40 transition-all self-start sm:self-auto"
+          type="button"
+          onClick={onOpenSettings}
+          className="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline"
         >
-          <Sparkles className="w-4 h-4 text-zinc-950" />
-          <span>View Tempo Recap</span>
-          <Share2 className="w-3.5 h-3.5 ml-1 text-zinc-950" />
+          Preferences
         </button>
       </div>
 
-      {/* Hero 4-Stat Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 bg-[#140e24] border border-purple-500/20 rounded-2xl">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Completions</span>
-            <Award className="w-4 h-4 text-amber-400" />
+      {/* Dark Profile Banner Card */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-[#171026] text-white flex items-center justify-between shadow-lg shadow-purple-950/20 border border-white/10 relative overflow-hidden">
+        <div className="flex items-center gap-3.5 relative z-10">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-amber-400 p-0.5 flex items-center justify-center shrink-0">
+            <div className="w-full h-full bg-[#171026] rounded-[14px] flex items-center justify-center text-amber-300">
+              <User className="w-6 h-6" />
+            </div>
           </div>
-          <p className="text-2xl font-black text-white">{totalCompletedAllTime}</p>
-          <p className="text-[10px] text-zinc-500 mt-0.5">All-time checked</p>
+          <div>
+            <h3 className="text-base font-bold tracking-tight">
+              {userPrefs.displayName || 'Gian Rufin'}
+            </h3>
+            <p className="text-xs text-zinc-400 font-medium">Daily Habit Builder</p>
+          </div>
         </div>
 
-        <div className="p-4 bg-[#140e24] border border-purple-500/20 rounded-2xl">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Top Streak</span>
-            <Flame className="w-4 h-4 text-orange-400" />
-          </div>
-          <p className="text-2xl font-black text-white">
-            {Math.max(...habitStats.map(h => h.stats.longestStreak), 0)}{' '}
-            <span className="text-xs font-normal text-zinc-400">days</span>
-          </p>
-          <p className="text-[10px] text-zinc-500 mt-0.5">Personal record</p>
-        </div>
-
-        <div className="p-4 bg-[#140e24] border border-purple-500/20 rounded-2xl">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Avg Mood</span>
-            <Smile className="w-4 h-4 text-emerald-400" />
-          </div>
-          <p className="text-2xl font-black text-white">
-            {avgMood} <span className="text-xs font-normal text-zinc-400">/ 5.0</span>
-          </p>
-          <p className="text-[10px] text-zinc-500 mt-0.5">Well-being index</p>
-        </div>
-
-        <div className="p-4 bg-[#140e24] border border-purple-500/20 rounded-2xl">
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Freezes</span>
-            <Sparkles className="w-4 h-4 text-sky-400" />
-          </div>
-          <p className="text-2xl font-black text-white">{totalFreezesUsed}</p>
-          <p className="text-[10px] text-zinc-500 mt-0.5">Grace days used</p>
+        <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300 relative z-10">
+          <Moon className="w-5 h-5" />
         </div>
       </div>
 
-      {/* 7-Day Velocity Bar Chart */}
-      <div className="p-5 bg-[#140e24] border border-purple-500/20 rounded-3xl shadow-lg">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-purple-400" />
-            <h3 className="text-sm font-bold text-white">Weekly Activity Rhythm</h3>
-          </div>
-          <span className="text-xs text-zinc-400">Last 7 Days</span>
-        </div>
+      {/* 2. Sub Navigation Tabs (Screen 3 Tabs) */}
+      <div className="flex items-center gap-2 p-1 bg-white dark:bg-[#161026] rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setActiveTab('STATS')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'STATS'
+              ? 'bg-[#7C69EF] text-white shadow-sm'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
+          }`}
+        >
+          My Stats
+        </button>
 
-        <div className="grid grid-cols-7 gap-2 items-end h-36 pt-4 border-b border-white/5 pb-2">
-          {last7Days.map(d => {
-            const heightPercent = Math.max((d.count / maxDailyCompletions) * 100, 10);
-            return (
-              <div key={d.dateStr} className="flex flex-col items-center gap-2 h-full justify-end">
-                <span className="text-[11px] font-bold text-amber-300 font-mono">{d.count}</span>
-                <div className="w-full max-w-[32px] bg-[#1a1230] rounded-xl overflow-hidden h-full flex flex-col justify-end p-0.5">
-                  <div
-                    className="w-full bg-gradient-to-t from-purple-600 via-purple-500 to-amber-400 rounded-lg transition-all duration-500 shadow-sm shadow-purple-600/50"
-                    style={{ height: `${heightPercent}%` }}
-                  />
-                </div>
-                <span className="text-[11px] font-medium text-zinc-400">{d.dayName}</span>
+        <button
+          type="button"
+          onClick={() => setActiveTab('ACHIEVEMENTS')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'ACHIEVEMENTS'
+              ? 'bg-[#7C69EF] text-white shadow-sm'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
+          }`}
+        >
+          Achievements
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('UPDATES')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'UPDATES'
+              ? 'bg-[#7C69EF] text-white shadow-sm'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
+          }`}
+        >
+          OTA Updates
+        </button>
+      </div>
+
+      {/* TAB 1: STATS BENTO GRID & CHART */}
+      {activeTab === 'STATS' && (
+        <div className="space-y-4 animate-fade-in">
+          {/* Average Wake-Up / Focus Card */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-[#ECE8FD] dark:bg-[#1E1638] border border-purple-300/60 dark:border-purple-800/50 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#7C69EF] text-white flex items-center justify-center shadow-md shadow-purple-900/20">
+                <Clock className="w-6 h-6" />
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Streak Leaderboard */}
-      <div className="p-5 bg-[#140e24] border border-purple-500/20 rounded-3xl shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-amber-400" />
-            <h3 className="text-sm font-bold text-white">Habit Streak Leaderboard</h3>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300">
+                  Target Wake-Up &amp; Start
+                </span>
+                <h4 className="text-xl font-black text-zinc-900 dark:text-white">
+                  6:42 AM
+                </h4>
+              </div>
+            </div>
+            <span className="text-[11px] font-mono font-bold text-purple-700 dark:text-purple-300 bg-purple-200/80 dark:bg-purple-900/60 px-2.5 py-1 rounded-xl">
+              This Week
+            </span>
           </div>
-          <span className="text-xs text-zinc-400">{habits.length} active</span>
-        </div>
 
-        <div className="space-y-2.5">
-          {sortedByStreak.map((item, idx) => {
-            const { habit, stats } = item;
-            return (
-              <div
-                key={habit.id}
-                onClick={() => onOpenHabitDetail(habit)}
-                className="p-3.5 bg-[#17102a] hover:bg-[#20163b] border border-white/5 rounded-2xl flex items-center justify-between cursor-pointer transition-all"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xs font-bold font-mono text-zinc-500 w-4">#{idx + 1}</span>
-                  <span className="text-2xl flex-shrink-0">{habit.icon}</span>
-                  <div className="truncate">
-                    <p className="text-xs font-semibold text-zinc-200 truncate">{habit.name}</p>
-                    <p className="text-[10px] text-zinc-400">
-                      Best: {stats.longestStreak} days • {stats.totalCompletions} total checks
-                    </p>
+          {/* 2-Card Bento Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-4 rounded-3xl bg-gradient-to-br from-[#FFA048] to-[#FF6B00] text-white space-y-1 shadow-md shadow-orange-950/20">
+              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+                <Flame className="w-4 h-4" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-white/80">
+                Best Streak
+              </span>
+              <div className="text-2xl font-black">{bestStreak} days</div>
+            </div>
+
+            <div className="p-4 rounded-3xl bg-[#ECE8FD] dark:bg-[#1E1638] border border-purple-300/60 dark:border-purple-800/50 space-y-1 shadow-sm">
+              <div className="w-8 h-8 rounded-xl bg-[#7C69EF]/20 text-[#7C69EF] flex items-center justify-center">
+                <Sun className="w-4 h-4" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300">
+                Most Recent
+              </span>
+              <div className="text-2xl font-black text-zinc-900 dark:text-white">
+                6:15 AM
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly Progress Smooth Curve SVG Chart (Screen 4 Chart) */}
+          <div className="p-5 rounded-3xl bg-white dark:bg-[#161026] border border-black/5 dark:border-white/5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                Weekly Completion Curve
+              </span>
+              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                Last Week &darr;
+              </span>
+            </div>
+
+            <div className="h-32 w-full flex items-end justify-between gap-2 pt-4">
+              {weeklyData.map(item => (
+                <div key={item.day} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                  <div className="w-full bg-purple-100 dark:bg-purple-950/50 rounded-2xl p-1 flex items-end h-24">
+                    <div
+                      className="w-full bg-[#7C69EF] rounded-xl transition-all duration-300"
+                      style={{ height: `${item.val}%` }}
+                    />
                   </div>
+                  <span className="text-[10px] font-medium text-zinc-400 font-mono">
+                    {item.day}
+                  </span>
                 </div>
-
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="flex items-center gap-1 px-3 py-1 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-300 font-bold text-xs">
-                    <Flame className="w-3.5 h-3.5 fill-amber-400/40" />
-                    <span>{stats.currentStreak}d</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Categories and Time of Day breakdown */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Category breakdown */}
-        <div className="p-5 bg-[#140e24] border border-purple-500/20 rounded-3xl">
-          <div className="flex items-center gap-2 mb-4">
-            <PieChart className="w-4 h-4 text-purple-400" />
-            <h3 className="text-sm font-bold text-white">Focus by Category</h3>
-          </div>
-          <div className="space-y-3">
-            {Object.entries(categoryCounts).map(([cat, data]) => (
-              <div key={cat}>
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-zinc-300 font-semibold">{cat}</span>
-                  <span className="text-zinc-400">{data.completed} completions</span>
-                </div>
-                <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-amber-400 rounded-full"
-                    style={{
-                      width: `${Math.min((data.completed / (totalCompletedAllTime || 1)) * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Time of Day Distribution */}
-        <div className="p-5 bg-[#140e24] border border-purple-500/20 rounded-3xl">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-4 h-4 text-amber-400" />
-            <h3 className="text-sm font-bold text-white">Time-of-Day Allocation</h3>
-          </div>
-          <div className="grid grid-cols-2 gap-2.5">
-            {[
-              { id: 'MORNING', label: 'Morning', icon: '🌅', count: timeOfDayCounts['MORNING'] },
-              { id: 'AFTERNOON', label: 'Afternoon', icon: '☀️', count: timeOfDayCounts['AFTERNOON'] },
-              { id: 'EVENING', label: 'Evening', icon: '🌆', count: timeOfDayCounts['EVENING'] },
-              { id: 'NIGHT', label: 'Night', icon: '🌙', count: timeOfDayCounts['NIGHT'] },
-            ].map(tod => (
-              <div key={tod.id} className="p-3 bg-[#18112c] rounded-2xl border border-white/5">
-                <div className="flex items-center justify-between">
-                  <span className="text-lg">{tod.icon}</span>
-                  <span className="text-base font-bold text-white">{tod.count}</span>
+      {/* TAB 2: ACHIEVEMENTS SQUIRCLE BADGES (Screen 4 Layout) */}
+      {activeTab === 'ACHIEVEMENTS' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="p-4 rounded-3xl bg-white dark:bg-[#161026] border border-black/5 dark:border-white/5 space-y-3 shadow-sm">
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              Milestone Badges
+            </span>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { title: 'Early Bird', icon: 'sun', unlocked: true },
+                { title: 'No Snooze', icon: 'bell', unlocked: true },
+                { title: '5 Day Streak', icon: 'flame', unlocked: bestStreak >= 5 },
+                { title: 'Morning Star', icon: 'star', unlocked: true },
+                { title: 'Focus Champion', icon: 'trophy', unlocked: true },
+                { title: 'Night Calm', icon: 'moon', unlocked: false },
+              ].map(badge => (
+                <div
+                  key={badge.title}
+                  className={`p-3 rounded-2xl border flex items-center gap-2.5 transition-all ${
+                    badge.unlocked
+                      ? 'bg-[#ECE8FD] dark:bg-[#1E1638] border-purple-300/40 dark:border-purple-800/40 text-zinc-900 dark:text-white'
+                      : 'bg-zinc-50 dark:bg-zinc-900/40 border-black/5 dark:border-white/5 text-zinc-400 opacity-60'
+                  }`}
+                >
+                  <SquircleIcon name={badge.icon} color="#7C69EF" size="sm" variant={badge.unlocked ? 'solid' : 'soft'} />
+                  <span className="text-xs font-bold">{badge.title}</span>
                 </div>
-                <p className="text-[11px] text-zinc-400 font-medium mt-1">{tod.label}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* TAB 3: OTA UPDATES & GITHUB DIRECT INSTALLER */}
+      {activeTab === 'UPDATES' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="p-5 rounded-3xl bg-white dark:bg-[#161026] border border-black/5 dark:border-white/5 space-y-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+                <RefreshCw className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                  In-App GitHub OTA Updater
+                </h3>
+                <p className="text-xs text-zinc-400 font-mono">
+                  Direct connection to {DEFAULT_GITHUB_REPO}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/40 flex items-center justify-between text-xs">
+              <span className="text-zinc-600 dark:text-zinc-300 font-medium">Installed Version</span>
+              <span className="font-mono font-bold text-purple-700 dark:text-purple-300">
+                v{CURRENT_APP_VERSION}
+              </span>
+            </div>
+
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              When updates are published to your repository, Tempo detects them in real-time, downloads the APK, prompts for the package install permission, and updates the application directly.
+            </p>
+
+            <button
+              type="button"
+              onClick={onOpenUpdateModal}
+              className="w-full py-3 px-4 rounded-2xl bg-[#7C69EF] hover:bg-[#6c59db] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-purple-900/20 active:scale-95 transition-all cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Check for Updates (Direct GitHub)</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

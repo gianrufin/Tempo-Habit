@@ -3,6 +3,7 @@ import { HABIT_TEMPLATES } from '../../data/templates';
 import { Habit, HabitTemplate } from '../../types';
 import { formatLocalDate } from '../../domain/recurrenceEngine';
 import { X, Sparkles, Plus } from 'lucide-react';
+import { SquircleIcon } from '../SquircleIcon';
 
 interface QuickAddModalProps {
   isOpen: boolean;
@@ -37,20 +38,25 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
       <div
-        className="w-full max-w-lg max-h-[90vh] bg-[#140e24] border border-purple-500/30 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+        className="w-full max-w-lg max-h-[90vh] bg-white dark:bg-[#161026] text-zinc-900 dark:text-white border border-black/5 dark:border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/5 bg-[#18112b]">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <h2 className="text-lg font-bold text-white">Curated Habit Templates</h2>
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-black/5 dark:border-white/5 bg-zinc-50 dark:bg-[#1a1330]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold tracking-tight">Curated Habit Starters</h2>
+              <p className="text-xs text-zinc-500">Pick a proven daily rhythm to start from scratch</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-zinc-400 hover:text-white rounded-full hover:bg-white/5"
+            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-white rounded-2xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -58,35 +64,29 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
 
         {/* List of templates */}
         <div className="p-5 space-y-3 overflow-y-auto flex-1">
-          <p className="text-xs text-zinc-400 mb-2">
-            Choose a proven habit to instantly add to your daily schedule with optimal defaults:
-          </p>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {HABIT_TEMPLATES.map(tmpl => (
               <div
                 key={tmpl.name}
                 onClick={() => handleSelect(tmpl)}
-                className="group p-3.5 bg-[#1b1330] hover:bg-[#251a42] border border-purple-500/15 hover:border-amber-400/40 rounded-2xl cursor-pointer transition-all duration-200 flex items-start justify-between"
+                className="group p-3.5 bg-zinc-50 dark:bg-[#1f1638] hover:bg-purple-50 dark:hover:bg-[#251a42] border border-black/5 dark:border-white/5 hover:border-purple-300/40 rounded-2xl cursor-pointer transition-all duration-200 flex items-start justify-between gap-2"
               >
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl p-2 bg-[#0e081c] rounded-xl flex-shrink-0">
-                    {tmpl.icon}
-                  </span>
+                  <SquircleIcon name={tmpl.icon} color={tmpl.color} size="md" variant="solid" />
                   <div>
-                    <h3 className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                       {tmpl.name}
                     </h3>
-                    <span className="text-[10px] font-semibold text-purple-300 uppercase tracking-wider block mt-0.5">
+                    <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-300 uppercase tracking-wider block mt-0.5">
                       {tmpl.category} • {tmpl.timeOfDay.toLowerCase()}
                     </span>
-                    <p className="text-xs text-zinc-400 mt-1 leading-snug">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
                       {tmpl.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-amber-400 group-hover:text-black text-zinc-400 transition-colors flex-shrink-0">
+                <div className="p-1.5 rounded-xl bg-black/5 dark:bg-white/5 group-hover:bg-[#7C69EF] group-hover:text-white text-zinc-400 transition-colors shrink-0">
                   <Plus className="w-4 h-4" />
                 </div>
               </div>
@@ -95,12 +95,12 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/5 bg-[#18112b] flex justify-end">
+        <div className="p-4 border-t border-black/5 dark:border-white/5 bg-zinc-50 dark:bg-[#1a1330] flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-xl"
+            className="py-2 px-5 rounded-2xl bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-semibold hover:bg-zinc-300 transition-colors"
           >
-            Cancel
+            Close
           </button>
         </div>
       </div>
