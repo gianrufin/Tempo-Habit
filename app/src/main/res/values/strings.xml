@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Tempo</string>
+    <string name="shortcut_add_habit">Add habit</string>
+    <string name="shortcut_add_task">Add task</string>
+    <string name="shortcut_start_pomodoro">Start Pomodoro</string>
+    <string name="widget_checklist_label">Tempo — Today</string>
+    <string name="widget_heatmap_label">Tempo — Month Heatmap</string>
+</resources>

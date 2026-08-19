@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="add_habit"
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:shortcutShortLabel="@string/shortcut_add_habit"
+        android:shortcutLongLabel="@string/shortcut_add_habit">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.tempo.app"
+            android:targetClass="com.tempo.app.MainActivity">
+            <extra android:name="shortcut_action" android:value="add_habit" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="add_task"
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:shortcutShortLabel="@string/shortcut_add_task"
+        android:shortcutLongLabel="@string/shortcut_add_task">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.tempo.app"
+            android:targetClass="com.tempo.app.MainActivity">
+            <extra android:name="shortcut_action" android:value="add_task" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="start_pomodoro"
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:shortcutShortLabel="@string/shortcut_start_pomodoro"
+        android:shortcutLongLabel="@string/shortcut_start_pomodoro">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.tempo.app"
+            android:targetClass="com.tempo.app.MainActivity">
+            <extra android:name="shortcut_action" android:value="start_pomodoro" />
+        </intent>
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --tempo-bg: #0b0714;
+    --tempo-card: #151024;
+    --tempo-card-elevated: #1e1735;
+    --tempo-gold: #f6c042;
+    --tempo-purple: #9d4edd;
+    --tempo-purple-dark: #240046;
+  }
+
+  body {
+    background-color: var(--tempo-bg);
+    color: #f3f4f6;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+}
+
+/* Custom Scrollbar for AMOLED theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(157, 78, 221, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(157, 78, 221, 0.4);
+}
+
+/* Glow effects */
+.glow-gold {
+  box-shadow: 0 0 25px -5px rgba(246, 192, 66, 0.25);
+}
+
+.glow-purple {
+  box-shadow: 0 0 25px -5px rgba(157, 78, 221, 0.3);
+}
+
+/* Pulse animation for active timer */
+@keyframes ring-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+}
+
+.animate-ring-pulse {
+  animation: ring-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

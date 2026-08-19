@@ -1,0 +1,8 @@
+{
+  "name": "Tempo",
+  "description": "Minimalist habit tracker, routine builder, and focus timer with streak tracking and insights",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
