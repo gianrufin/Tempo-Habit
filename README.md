@@ -17,7 +17,7 @@ The APK binary is committed directly in this repository:
 
 | Repository | Direct Raw Download Link |
 |---|---|
-| **gianrufin/Tempo** | [📥 Download tempo-android-release.apk](https://github.com/gianrufin/Tempo/raw/main/apk/tempo-android-release.apk) |
+| **Tempo-Habit** | [📥 Download tempo-android-release.apk](https://github.com/gianrufin/Tempo-Habit/raw/main/apk/tempo-android-release.apk) |
 
 ---
 
@@ -30,9 +30,9 @@ In the live web application, click the **"Get APK"** button in the top bar to do
 
 | Resource | Link | Description |
 |---|---|---|
-| **GitHub Actions Workflow** | [⚙️ Actions Build Runs](https://github.com/gianrufin/Tempo/actions) | View automated build status & triggers |
-| **GitHub Releases Hub** | [📦 Releases & Tags](https://github.com/gianrufin/Tempo/releases) | Official GitHub release assets |
-| **GitHub Repository** | [📂 Codebase Root](https://github.com/gianrufin/Tempo) | Repository files and commits |
+| **GitHub Actions Workflow** | [⚙️ Actions Build Runs](https://github.com/gianrufin/Tempo-Habit/actions) | View automated build status & triggers |
+| **GitHub Releases Hub** | [📦 Releases & Tags](https://github.com/gianrufin/Tempo-Habit/releases) | Official GitHub release assets |
+| **GitHub Repository** | [📂 Codebase Root](https://github.com/gianrufin/Tempo-Habit) | Repository files and commits |
 
 ---
 

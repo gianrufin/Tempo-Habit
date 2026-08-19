@@ -1,7 +1,7 @@
 import { AppReleaseInfo } from '../types';
 
 export const CURRENT_APP_VERSION = '1.0.0';
-export const DEFAULT_GITHUB_REPO = 'gianrufin/Tempo';
+export const DEFAULT_GITHUB_REPO = 'gianrufin/Tempo-Habit';
 
 /**
  * Normalizes version strings like 'v1.2.0' or '1.2.0-beta' to numbers array [1, 2, 0]
