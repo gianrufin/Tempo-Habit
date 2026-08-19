@@ -31,6 +31,7 @@ import { QuickAddModal } from './components/Modals/QuickAddModal';
 import { SettingsModal } from './components/Modals/SettingsModal';
 import { SearchModal } from './components/Modals/SearchModal';
 import { UpdateModal } from './components/Modals/UpdateModal';
+import { PermissionsModal } from './components/Modals/PermissionsModal';
 
 export const App: React.FC = () => {
   // Primary persistent state (Starts clean from scratch)
@@ -50,6 +51,7 @@ export const App: React.FC = () => {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [permissionsModalOpen, setPermissionsModalOpen] = useState(false);
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
 
   const [addEditHabitOpen, setAddEditHabitOpen] = useState(false);
@@ -185,6 +187,7 @@ export const App: React.FC = () => {
         onOpenSearch={() => setSearchModalOpen(true)}
         onOpenSettings={() => setSettingsModalOpen(true)}
         onOpenUpdateModal={() => setUpdateModalOpen(true)}
+        onOpenPermissions={() => setPermissionsModalOpen(true)}
         onToggleTheme={handleToggleTheme}
       />
 
@@ -328,6 +331,12 @@ export const App: React.FC = () => {
         isOpen={updateModalOpen}
         onClose={() => setUpdateModalOpen(false)}
         targetRepo={userPrefs.githubRepo || 'gianrufin/Tempo-Habit'}
+      />
+
+      {/* Permissions Diagnostic Modal */}
+      <PermissionsModal
+        isOpen={permissionsModalOpen}
+        onClose={() => setPermissionsModalOpen(false)}
       />
     </div>
   );

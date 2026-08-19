@@ -1,15 +1,17 @@
 /**
- * Web Audio API synthesizer that generates the bundled Tempo tones and timer alarms:
+ * Web Audio API synthesizer that generates Tempo tones and timer alarms:
  * - Golden Hour: Mellow, resonant multi-note pentatonic chime
  * - Aura Ping: Short mid-high ping with shimmering overtone
  * - Crystal Fizz: Bright crisp sparkle arpeggio
  * - Velvet Pop: Soft low harmonic bubble pop
  * - Cloud Drift: Mellow ambient chord swell
+ * - Alarm Ring: Continuous ringing alarm loop for timer completion splash screen
  */
 
-type SoundName = 'Golden Hour' | 'Aura Ping' | 'Crystal Fizz' | 'Velvet Pop' | 'Cloud Drift';
+export type SoundName = 'Golden Hour' | 'Aura Ping' | 'Crystal Fizz' | 'Velvet Pop' | 'Cloud Drift' | 'Alarm Ring';
 
 let audioCtx: AudioContext | null = null;
+let activeAlarmInterval: NodeJS.Timeout | null = null;
 
 function getAudioContext(): AudioContext {
   if (!audioCtx) {
@@ -20,6 +22,14 @@ function getAudioContext(): AudioContext {
     audioCtx.resume();
   }
   return audioCtx;
+}
+
+export function triggerVibration(pattern: number[] = [300, 150, 300, 150, 600]): void {
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(pattern);
+    }
+  } catch (_) {}
 }
 
 export function playSound(soundName: SoundName | string = 'Golden Hour', volume = 0.6): void {
@@ -33,7 +43,6 @@ export function playSound(soundName: SoundName | string = 'Golden Hour', volume 
 
     switch (soundName) {
       case 'Golden Hour': {
-        // Pentatonic chime: E5, G#5, B5, E6
         const freqs = [659.25, 830.61, 987.77, 1318.51];
         freqs.forEach((freq, i) => {
           const osc = ctx.createOscillator();
@@ -55,15 +64,14 @@ export function playSound(soundName: SoundName | string = 'Golden Hour', volume 
       }
 
       case 'Aura Ping': {
-        // High ping with bell-like harmonic
         const osc1 = ctx.createOscillator();
         const osc2 = ctx.createOscillator();
         const gain = ctx.createGain();
 
         osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(1046.5, now); // C6
+        osc1.frequency.setValueAtTime(1046.5, now);
         osc2.type = 'triangle';
-        osc2.frequency.setValueAtTime(2093.0, now); // C7 harmonic
+        osc2.frequency.setValueAtTime(2093.0, now);
 
         gain.gain.setValueAtTime(0.4, now);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
@@ -80,7 +88,6 @@ export function playSound(soundName: SoundName | string = 'Golden Hour', volume 
       }
 
       case 'Crystal Fizz': {
-        // Rapid 4-note sparkle ascending
         const notes = [1174.66, 1396.91, 1760.0, 2093.0];
         notes.forEach((freq, idx) => {
           const osc = ctx.createOscillator();
@@ -102,7 +109,6 @@ export function playSound(soundName: SoundName | string = 'Golden Hour', volume 
       }
 
       case 'Velvet Pop': {
-        // Deep bubble pop: pitch envelope drops from 400Hz to 120Hz
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
@@ -122,7 +128,6 @@ export function playSound(soundName: SoundName | string = 'Golden Hour', volume 
 
       case 'Cloud Drift':
       default: {
-        // Ambient swelling chord: A4, C#5, E5
         const chord = [440, 554.37, 659.25];
         chord.forEach(freq => {
           const osc = ctx.createOscillator();
@@ -168,5 +173,26 @@ export function playCelebrationSound(): void {
     });
   } catch {
     // silent fail
+  }
+}
+
+export function startTimerAlarmLoop(soundChoice: SoundName | string = 'Golden Hour'): void {
+  stopTimerAlarmLoop();
+  
+  // Play initial chime and vibration
+  playSound(soundChoice, 0.85);
+  triggerVibration([400, 200, 400, 200, 800]);
+
+  // Repeat chime every 2.4 seconds while alarm is active
+  activeAlarmInterval = setInterval(() => {
+    playSound(soundChoice, 0.85);
+    triggerVibration([400, 200, 400, 200, 800]);
+  }, 2400);
+}
+
+export function stopTimerAlarmLoop(): void {
+  if (activeAlarmInterval) {
+    clearInterval(activeAlarmInterval);
+    activeAlarmInterval = null;
   }
 }

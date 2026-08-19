@@ -3,6 +3,7 @@ import { Habit, RecurrenceType, TimeOfDay } from '../../types';
 import { formatLocalDate, addDays } from '../../domain/recurrenceEngine';
 import { X, Trash2, Plus, Minus, Check, Clock } from 'lucide-react';
 import { SquircleIcon, AVAILABLE_ICON_KEYS } from '../SquircleIcon';
+import { MaterialTimePicker } from './MaterialTimePicker';
 
 interface AddEditHabitModalProps {
   habit?: Habit | null; // if null, creating new
@@ -48,6 +49,7 @@ export const AddEditHabitModal: React.FC<AddEditHabitModalProps> = ({
   const [reminders, setReminders] = useState<string[]>(habit?.reminderTimes || ['08:00']);
   const [newReminder, setNewReminder] = useState('08:00');
   const [pausedUntil, setPausedUntil] = useState<string | null>(habit?.pausedUntil || null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const toggleWeekday = (id: number) => {
     if (weekdays.includes(id)) {
@@ -286,21 +288,35 @@ export const AddEditHabitModal: React.FC<AddEditHabitModalProps> = ({
           </div>
 
           {/* Reminder Times */}
-          <div className="space-y-2 p-4 rounded-2xl bg-zinc-50 dark:bg-[#1f1638] border border-black/5 dark:border-white/5">
-            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Reminder Alerts
-            </label>
+          <div className="space-y-2.5 p-4 rounded-2xl bg-zinc-50 dark:bg-[#1f1638] border border-black/5 dark:border-white/5">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Reminder Alerts
+              </label>
+              <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-400">
+                Exact Alarms
+              </span>
+            </div>
+
             <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={newReminder}
-                onChange={e => setNewReminder(e.target.value)}
-                className="text-xs font-bold py-2 px-3 rounded-xl bg-white dark:bg-[#161026] border border-black/5 dark:border-white/5 outline-none"
-              />
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="flex-1 py-2.5 px-3.5 rounded-2xl bg-white dark:bg-[#161026] border border-purple-200 dark:border-purple-800/40 text-zinc-800 dark:text-zinc-200 font-mono text-xs font-bold flex items-center justify-between shadow-sm hover:border-[#7C69EF] transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#7C69EF]" />
+                  <span>{newReminder || '08:00'}</span>
+                </div>
+                <span className="text-[10px] text-purple-600 dark:text-purple-300 uppercase tracking-wider font-sans font-extrabold">
+                  Change Time
+                </span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleAddReminder}
-                className="py-2 px-3 rounded-xl bg-[#7C69EF] text-white font-bold text-xs flex items-center gap-1 shadow-sm"
+                className="py-2.5 px-4 rounded-2xl bg-[#7C69EF] hover:bg-[#6c59db] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Alert</span>
@@ -312,9 +328,9 @@ export const AddEditHabitModal: React.FC<AddEditHabitModalProps> = ({
                 {reminders.map(t => (
                   <span
                     key={t}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-mono text-xs font-bold"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-mono text-xs font-bold border border-purple-200 dark:border-purple-800/30"
                   >
-                    <Clock className="w-3 h-3" />
+                    <Clock className="w-3 h-3 text-[#7C69EF]" />
                     <span>{t}</span>
                     <button
                       type="button"
@@ -328,6 +344,19 @@ export const AddEditHabitModal: React.FC<AddEditHabitModalProps> = ({
               </div>
             )}
           </div>
+
+          <MaterialTimePicker
+            isOpen={pickerOpen}
+            initialTime={newReminder}
+            title="Set Reminder Time"
+            onClose={() => setPickerOpen(false)}
+            onSelectTime={selected => {
+              setNewReminder(selected);
+              if (!reminders.includes(selected)) {
+                setReminders([...reminders, selected]);
+              }
+            }}
+          />
         </div>
 
         {/* Footer */}

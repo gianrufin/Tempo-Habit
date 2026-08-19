@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Settings, RefreshCw, Sun, Moon, Bell } from 'lucide-react';
+import { Search, Settings, RefreshCw, Sun, Moon, ShieldCheck } from 'lucide-react';
 import { UserPreferences } from '../types';
 import { SquircleIcon } from './SquircleIcon';
 
@@ -11,6 +11,7 @@ interface TopBarProps {
   onOpenSearch: () => void;
   onOpenSettings: () => void;
   onOpenUpdateModal?: () => void;
+  onOpenPermissions?: () => void;
   onToggleTheme?: () => void;
 }
 
@@ -22,6 +23,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   onOpenSearch,
   onOpenSettings,
   onOpenUpdateModal,
+  onOpenPermissions,
   onToggleTheme,
 }) => {
   const isLight = userPrefs.theme === 'light';
@@ -33,10 +35,10 @@ export const TopBar: React.FC<TopBarProps> = ({
   });
 
   return (
-    <header className="w-full pt-4 pb-3 px-4 sm:px-6 flex items-center justify-between border-b border-black/5 dark:border-white/5 bg-[#F4F3FB]/90 dark:bg-[#0E091C]/90 backdrop-blur-md sticky top-0 z-30">
+    <header className="w-full pt-[max(1rem,env(safe-area-inset-top,1rem))] pb-3 px-4 sm:px-6 flex items-center justify-between border-b border-black/5 dark:border-white/5 bg-[#F4F3FB]/90 dark:bg-[#0E091C]/90 backdrop-blur-md sticky top-0 z-30 select-none">
       {/* User Info & Squircle Avatar */}
       <div className="flex items-center gap-3">
-        <SquircleIcon name="zap" color="#7C69EF" size="md" variant="soft" />
+        <SquircleIcon name="zap" color="#7C69EF" size="md" variant="solid" />
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
@@ -50,8 +52,21 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {/* Action Buttons in Squircles */}
-      <div className="flex items-center gap-2">
-        {/* In-App GitHub OTA Check for Updates button */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* App Permissions & System Capabilities */}
+        {onOpenPermissions && (
+          <button
+            type="button"
+            onClick={onOpenPermissions}
+            className="p-2.5 rounded-2xl bg-white dark:bg-[#1C1433] hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-300 border border-black/5 dark:border-white/5 shadow-sm transition-all cursor-pointer"
+            title="App Permissions & Diagnostics"
+            aria-label="App Permissions"
+          >
+            <ShieldCheck className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* In-App GitHub OTA Check for Updates */}
         {onOpenUpdateModal && (
           <button
             type="button"
@@ -64,7 +79,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           </button>
         )}
 
-        {/* Theme Toggle */}
+        {/* Theme Toggle (Light / Dark) */}
         {onToggleTheme && (
           <button
             type="button"
@@ -77,7 +92,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           </button>
         )}
 
-        {/* Search button */}
+        {/* Search */}
         <button
           type="button"
           onClick={onOpenSearch}
@@ -88,7 +103,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <Search className="w-4 h-4" />
         </button>
 
-        {/* Settings button */}
+        {/* Settings */}
         <button
           type="button"
           onClick={onOpenSettings}

@@ -15,7 +15,7 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
   onQuickAdd,
 }) => {
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-40 flex items-center justify-center px-4 pointer-events-none">
+    <div className="fixed bottom-[max(1rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] left-0 right-0 z-40 flex items-center justify-center px-4 pointer-events-none select-none">
       <nav className="pointer-events-auto bg-white/95 dark:bg-[#160f29]/95 backdrop-blur-xl border border-black/5 dark:border-white/10 p-1.5 rounded-full shadow-xl shadow-purple-950/15 dark:shadow-purple-950/50 flex items-center gap-1.5 sm:gap-2">
         {/* Home / Today */}
         <button

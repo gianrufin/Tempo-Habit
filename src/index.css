@@ -2,23 +2,32 @@
 
 @layer base {
   :root {
-    --tempo-bg: #0b0714;
-    --tempo-card: #151024;
-    --tempo-card-elevated: #1e1735;
-    --tempo-gold: #f6c042;
-    --tempo-purple: #9d4edd;
-    --tempo-purple-dark: #240046;
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+  }
+
+  * {
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   }
 
   body {
-    background-color: var(--tempo-bg);
-    color: #f3f4f6;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
+    padding-top: var(--sat);
+    padding-bottom: var(--sab);
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input, button, select, textarea {
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   }
 }
 
-/* Custom Scrollbar for AMOLED theme */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -29,35 +38,66 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(157, 78, 221, 0.2);
+  background: rgba(124, 105, 239, 0.2);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(157, 78, 221, 0.4);
+  background: rgba(124, 105, 239, 0.4);
 }
 
-/* Glow effects */
-.glow-gold {
-  box-shadow: 0 0 25px -5px rgba(246, 192, 66, 0.25);
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.glow-purple {
-  box-shadow: 0 0 25px -5px rgba(157, 78, 221, 0.3);
-}
-
-/* Pulse animation for active timer */
-@keyframes ring-pulse {
+/* Material 3 & Android 17 animations */
+@keyframes ring-pulse-strong {
   0%, 100% {
     transform: scale(1);
-    opacity: 0.8;
+    opacity: 0.9;
   }
   50% {
-    transform: scale(1.03);
+    transform: scale(1.08);
     opacity: 1;
   }
 }
 
 .animate-ring-pulse {
-  animation: ring-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: ring-pulse-strong 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes alarm-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+.animate-alarm-bounce {
+  animation: alarm-bounce 1s ease-in-out infinite;
+}
+
+@keyframes radial-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(124, 105, 239, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 35px rgba(124, 105, 239, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(124, 105, 239, 0);
+  }
+}
+
+.animate-radial-pulse {
+  animation: radial-pulse 2s infinite;
 }
